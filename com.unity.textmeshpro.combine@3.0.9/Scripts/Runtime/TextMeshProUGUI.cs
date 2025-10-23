@@ -646,9 +646,9 @@ namespace TMPro
         {
             int materialCount = m_textInfo.materialCount;
 
-            for (int i = 0; i < materialCount; i++)
+            for (int i = 0; i < materialCount && i < m_subTextObjects.Length; i++)
             {
-                Mesh mesh;
+                Mesh mesh = null;
 
                 if (i == 0)
                     mesh = m_mesh;
@@ -657,9 +657,18 @@ namespace TMPro
                     // Clear unused vertices
                     // TODO: Causes issues when sorting geometry as last vertex data attribute get wiped out.
                     //m_textInfo.meshInfo[i].ClearUnusedVertices();
-
-                    mesh = m_subTextObjects[i].mesh;
+                    if (m_subTextObjects[i] != null)
+                    {
+                        mesh = m_subTextObjects[i].mesh;
+                    }
+                    else
+                    {
+                        Debug.LogError($"TMP SubTextObject == null, index={i}, name={this.name}");
+                    }
                 }
+
+                if (mesh == null)
+                    continue;
 
                 if ((flags & TMP_VertexDataUpdateFlags.Vertices) == TMP_VertexDataUpdateFlags.Vertices)
                     mesh.vertices = m_textInfo.meshInfo[i].vertices;
@@ -682,6 +691,62 @@ namespace TMPro
                     m_canvasRenderer.SetMesh(mesh);
                 else
                     m_subTextObjects[i].canvasRenderer.SetMesh(mesh);
+            }
+        }
+
+        /// <summary>
+        /// Function to upload the updated vertex data and renderer.
+        /// </summary>
+        public override void UpdateVertexData(int subIndex, TMP_VertexDataUpdateFlags flags)
+        {
+            if (m_textInfo == null || m_textInfo.meshInfo == null || subIndex >= m_textInfo.meshInfo.Length)
+            {
+                return;
+            }
+
+            if (subIndex >= 0 && subIndex < m_subTextObjects.Length)
+            {
+                Mesh mesh = null;
+                if (subIndex == 0)
+                {
+                    mesh = m_mesh;
+                }
+                else
+                {
+                    if (m_subTextObjects[subIndex] != null)
+                    {
+                        mesh = m_subTextObjects[subIndex].mesh;
+                    }
+                    else
+                    {
+                        Debug.LogError($"TMP SubTextObject == null, index={subIndex}, name={this.name}");
+                    }
+                }
+
+                if (mesh == null)
+                    return;
+
+                if ((flags & TMP_VertexDataUpdateFlags.Vertices) == TMP_VertexDataUpdateFlags.Vertices)
+                    mesh.vertices = m_textInfo.meshInfo[subIndex].vertices;
+
+                if ((flags & TMP_VertexDataUpdateFlags.Uv0) == TMP_VertexDataUpdateFlags.Uv0)
+                    mesh.uv = m_textInfo.meshInfo[subIndex].uvs0;
+
+                if ((flags & TMP_VertexDataUpdateFlags.Uv1) == TMP_VertexDataUpdateFlags.Uv1)
+                    mesh.SetUVs(1, m_textInfo.meshInfo[subIndex].uvs1);
+
+                if ((flags & TMP_VertexDataUpdateFlags.Uv2) == TMP_VertexDataUpdateFlags.Uv2)
+                    mesh.SetUVs(2, m_textInfo.meshInfo[subIndex].uvs2);
+
+                if ((flags & TMP_VertexDataUpdateFlags.Colors32) == TMP_VertexDataUpdateFlags.Colors32)
+                    mesh.colors32 = m_textInfo.meshInfo[subIndex].colors32;
+
+                mesh.RecalculateBounds();
+
+                if (subIndex == 0)
+                    m_canvasRenderer.SetMesh(mesh);
+                else
+                    m_subTextObjects[subIndex].canvasRenderer.SetMesh(mesh);
             }
         }
 

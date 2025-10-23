@@ -75,7 +75,7 @@ namespace TMPro
                     }
 
                     if (IsActive())
-                        this.UpdateVertexData(TMP_VertexDataUpdateFlags.Uv1);
+                        this.UpdateVertexData(0, TMP_VertexDataUpdateFlags.Uv1);
                 }
             }
         }
@@ -88,7 +88,7 @@ namespace TMPro
             if (this.textInfo.meshInfo.Length > 0)
             {
                 var meshInfo = this.textInfo.meshInfo[0];
-                if (meshInfo.uvs2 != null && meshInfo.mesh.vertexCount > 0)
+                if (meshInfo.uvs2 != null && meshInfo.mesh != null && meshInfo.mesh.vertexCount > 0)
                 {
                     for (int v = 0; v < meshInfo.mesh.vertexCount; v++)
                     {
@@ -97,7 +97,7 @@ namespace TMPro
 
                     if (IsActive())
                     {
-                        this.UpdateVertexData(TMP_VertexDataUpdateFlags.Uv2);
+                        this.UpdateVertexData(0, TMP_VertexDataUpdateFlags.Uv2);
                     }
                 }
             }

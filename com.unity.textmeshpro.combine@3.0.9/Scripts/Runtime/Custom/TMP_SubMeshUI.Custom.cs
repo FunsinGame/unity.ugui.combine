@@ -87,7 +87,7 @@ namespace TMPro
                         meshInfo.uvs1[v].w = _fontParamSlot.index;
                     }
 
-                    textComponent.UpdateVertexData(TMP_VertexDataUpdateFlags.Uv1);
+                    textComponent.UpdateVertexData(m_SubIndex, TMP_VertexDataUpdateFlags.Uv1);
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace TMPro
                         meshInfo.uvs2[v] = new Vector4((int)CombineType, m_ClipRectIndex, CombineMaterialIndex.slotIndex);
                     }
 
-                    textComponent.UpdateVertexData(TMP_VertexDataUpdateFlags.Uv2);
+                    textComponent.UpdateVertexData(m_SubIndex, TMP_VertexDataUpdateFlags.Uv2);
                 }
             }
         }

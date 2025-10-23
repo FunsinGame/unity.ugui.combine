@@ -1756,6 +1756,10 @@ namespace TMPro
         /// </summary>
         public virtual void UpdateVertexData(TMP_VertexDataUpdateFlags flags) { }
 
+        /// <summary>
+        /// Function to push the updated vertex data into the mesh and renderer.
+        /// </summary>
+        public virtual void UpdateVertexData(int subIndex, TMP_VertexDataUpdateFlags flags) { }
 
         /// <summary>
         /// Function to push the updated vertex data into the mesh and renderer.
