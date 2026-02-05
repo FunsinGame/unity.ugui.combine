@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.UI.CombineRender
 {
-    internal struct MaterialIndex
+    internal struct MaterialIndex : IEquatable<MaterialIndex>
     {
         public int matIndex;
         public int slotIndex;
@@ -20,10 +20,28 @@ namespace UnityEngine.UI.CombineRender
 
         public static bool operator !=(MaterialIndex a, MaterialIndex b)
         {
-            return a.matIndex != b.matIndex && a.slotIndex != b.slotIndex;
+            return a.matIndex != b.matIndex || a.slotIndex != b.slotIndex;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is MaterialIndex other && Equals(other);
+        }
+
+        public bool Equals(MaterialIndex other)
+        {
+            return matIndex == other.matIndex && slotIndex == other.slotIndex;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (matIndex * 397) ^ slotIndex;
+            }
         }
     }
-
+    
     [RequireComponent(typeof(Canvas))]
     public partial class CanvasCombiner : MonoBehaviour
     {

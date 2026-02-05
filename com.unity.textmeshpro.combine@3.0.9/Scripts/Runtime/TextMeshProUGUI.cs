@@ -704,6 +704,11 @@ namespace TMPro
                 return;
             }
 
+            if (m_TextProcessingArray == null || m_TextProcessingArray.Length == 0 || m_TextProcessingArray[0].unicode == 0)
+            {
+                return; 
+            }
+
             if (subIndex >= 0 && subIndex < m_subTextObjects.Length)
             {
                 Mesh mesh = null;

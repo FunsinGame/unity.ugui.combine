@@ -1539,6 +1539,17 @@ namespace TMPro
                 TMP_UpdateManager.UnRegisterTextObjectForUpdate(this);
             else if (m_IsTextObjectScaleStatic == false)
                 TMP_UpdateManager.RegisterTextObjectForUpdate(this);
+
+            if (m_canvas != null)
+            {
+                if (m_canvas.additionalShaderChannels != (AdditionalCanvasShaderChannels)25)
+                    m_canvas.additionalShaderChannels |= (AdditionalCanvasShaderChannels)25;
+
+                if (TMP_CombineRenderManager.IsOpen && !m_canvas.additionalShaderChannels.HasFlag(AdditionalCanvasShaderChannels.TexCoord2))
+                {
+                    m_canvas.additionalShaderChannels |= AdditionalCanvasShaderChannels.TexCoord2;
+                }
+            }
         }
 
 

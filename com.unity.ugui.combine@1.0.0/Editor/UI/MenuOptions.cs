@@ -322,6 +322,32 @@ namespace UnityEditor.UI
             PlaceUIElementRoot(go, menuCommand);
         }
 
+        [MenuItem("GameObject/UI/Button - Image", false)]
+        public static void AddButtonWithImage(MenuCommand menuCommand)
+        {
+            GameObject go;
+            using (new FactorySwapToEditor())
+            {
+                go = DefaultControls.CreateButton(GetStandardResources(), false);
+                go.name = "Button";
+            }
+
+            using (new FactorySwapToEditor())
+            {
+                var img = DefaultControls.CreateImage(GetStandardResources());
+                img.transform.SetParent(go.transform);
+                
+                RectTransform textRectTransform = img.GetComponent<RectTransform>();
+                textRectTransform.anchorMin = Vector2.zero;
+                textRectTransform.anchorMax = Vector2.one;
+                textRectTransform.sizeDelta = Vector2.zero;
+
+                Image image = img.GetComponent<Image>();
+                image.raycastTarget = false;
+            }
+            PlaceUIElementRoot(go, menuCommand);
+        }
+
         // Helper methods
 
         static public GameObject CreateNewUI()

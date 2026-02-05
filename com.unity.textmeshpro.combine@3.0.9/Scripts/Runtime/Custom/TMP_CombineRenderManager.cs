@@ -41,12 +41,12 @@ namespace TMPro.CombineRender
         {
             if (_styleSettingAllocator != null)
             {
-                _styleSettingAllocator.UpdateTexture();
+                _styleSettingAllocator.UpdateBuffer();
             }
 
             if (_fontSettingAllocator != null)
             {
-                _fontSettingAllocator.UpdateTexture();
+                _fontSettingAllocator.UpdateBuffer();
             }
         }
 
@@ -115,34 +115,6 @@ namespace TMPro.CombineRender
         internal static void FreeSlot(ref TMP_ParamSlot slot)
         {
             _styleSettingAllocator?.FreeSlot(ref slot);
-        }
-
-        /// <summary>
-        /// 更新网格数据，添加参数纹理UV
-        /// </summary>
-        internal static void UpdateMeshWithParameterIndex(
-            TMP_Text textComponent,
-            TMP_ParamSlot styleAlloc,
-            TMP_ParamSlot fontSlot
-        )
-        {
-            if (textComponent.textInfo == null || textComponent.textInfo.meshInfo == null)
-                return;
-
-            for (int i = 0; i < textComponent.textInfo.meshInfo.Length; i++)
-            {
-                var meshInfo = textComponent.textInfo.meshInfo[i];
-                if (meshInfo.uvs1 != null && meshInfo.mesh.vertexCount > 0)
-                {
-                    for (int v = 0; v < meshInfo.mesh.vertexCount; v++)
-                    {
-                        meshInfo.uvs1[v].z = styleAlloc.index;
-                        meshInfo.uvs1[v].w = fontSlot.index;
-                    }
-
-                    textComponent.UpdateVertexData(TMP_VertexDataUpdateFlags.Uv1);
-                }
-            }
         }
 
         /// <summary>

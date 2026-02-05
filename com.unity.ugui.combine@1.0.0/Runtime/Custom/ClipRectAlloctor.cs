@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace UnityEngine.UI.CombineRender
 {
@@ -16,6 +18,7 @@ namespace UnityEngine.UI.CombineRender
         private List<int> _freeIndexs = new();
         private bool _logFlag = false;
         private bool _isDirty = false;
+        private bool _canWriteDetailLog = true;
 
         public ClipRectAlloctor()
         {
@@ -61,15 +64,7 @@ namespace UnityEngine.UI.CombineRender
                 // 没有可用槽位
                 else
                 {
-                    if (!_logFlag)
-                    {
-                        // 避免日志太多
-                        string path = CombineRenderManager.GetComponentPath(mask?.transform);
-                        Debug.LogError(
-                            $"同时存在的RectMask2D已超出最大限制({MAX_CLIPRECT_COUNT}个), path = {path}"
-                        );
-                        _logFlag = true;
-                    }
+                    DebugErrorLog(mask);
                     return 0;
                 }
 
@@ -106,6 +101,41 @@ namespace UnityEngine.UI.CombineRender
             }
 
             return info.index;
+        }
+
+        private void DebugErrorLog(RectMask2D mask)
+        {
+            // 避免每帧日志输出
+            if (!_logFlag)
+            {
+                // 详细日志仅输出一次
+                if (_canWriteDetailLog)
+                {
+                    _canWriteDetailLog = false;
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine($"同时存在的RectMask2D已超出最大限制({MAX_CLIPRECT_COUNT}个)");
+                    foreach (var kv in _maskMap)
+                    {
+                        if (kv.Key == null)
+                        {
+                            sb.AppendLine($"index = {kv.Value.index}, mask = null");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"index = {kv.Value.index}, mask = {CombineRenderManager.GetComponentPath(kv.Key.transform)}");
+                        }
+                    }
+                    Debug.LogError(sb.ToString());
+                }
+                else
+                {
+                    string path = CombineRenderManager.GetComponentPath(mask?.transform);
+                    Debug.LogError(
+                        $"同时存在的RectMask2D已超出最大限制({MAX_CLIPRECT_COUNT}个), path = {path}"
+                    );
+                }
+                _logFlag = true;
+            }
         }
 
         internal void FreeClipRect(RectMask2D mask)

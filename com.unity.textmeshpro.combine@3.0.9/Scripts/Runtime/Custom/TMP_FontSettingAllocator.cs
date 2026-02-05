@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace TMPro.CombineRender
@@ -32,22 +31,21 @@ namespace TMPro.CombineRender
         }
     }
 
+    internal struct FontParamData
+    {
+        public float gradientScale;
+        public float weightNormal;
+        public float weightBold;
+        public float padding; // Pad to 16 bytes
+    }
+
     internal class TMP_FontSettingAllocator : IDisposable
     {
-        /// <summary>
-        /// 初始纹理宽度
-        /// </summary>
-        private const int INITIAL_TEXTURE_WIDTH = 32;
+        private const int INITIAL_SETTING_COUNT = 32;
 
-        /// <summary>
-        /// 初始纹理高度
-        /// </summary>
-        private const int INITIAL_TEXTURE_HEIGHT = 1;
+        private ComputeBuffer _fontParamBuffer;
+        private FontParamData[] _bufferData;
 
-        private static readonly int ID_FontParamTex = Shader.PropertyToID("_FontParamTex");
-
-        private Texture2D _parameterTexture;
-        private Color[] _textureData;
         private List<bool> _allocatedSlots;
         private Queue<int> _freeSlots;
         private bool _textureNeedsUpdate;
@@ -62,8 +60,6 @@ namespace TMPro.CombineRender
         /// </summary>
         private readonly Dictionary<int, int> _settingHash2Slot = new();
 
-        public Texture2D Texture => _parameterTexture;
-
         public TMP_FontSettingAllocator()
         {
             InitializeTexture();
@@ -72,26 +68,29 @@ namespace TMPro.CombineRender
         /// <summary>
         /// 应用纹理更新
         /// </summary>
-        public void UpdateTexture()
+        public void UpdateBuffer()
         {
-            if (_textureNeedsUpdate && _parameterTexture != null)
+            if (_textureNeedsUpdate)
             {
-                _parameterTexture.SetPixels(_textureData);
-                _parameterTexture.Apply(false, false);
+                if (_fontParamBuffer != null)
+                {
+                    _fontParamBuffer.SetData(_bufferData);
+                    Shader.SetGlobalBuffer("_FontParamBuffer", _fontParamBuffer);
+                }
+
                 _textureNeedsUpdate = false;
-                Shader.SetGlobalTexture(ID_FontParamTex, _parameterTexture);
             }
         }
 
         public void Dispose()
         {
-            if (_parameterTexture != null)
+            if (_fontParamBuffer != null)
             {
-                UnityEngine.Object.DestroyImmediate(_parameterTexture);
-                _parameterTexture = null;
+                _fontParamBuffer.Release();
+                _fontParamBuffer = null;
             }
 
-            _textureData = null;
+            _bufferData = null;
             _allocatedSlots?.Clear();
             _freeSlots?.Clear();
             _slot2SettingHash?.Clear();
@@ -125,7 +124,7 @@ namespace TMPro.CombineRender
             }
             else
             {
-                Debug.LogError($"字体设置超过{INITIAL_TEXTURE_WIDTH}个参数限制");
+                Debug.LogError($"字体设置超过{INITIAL_SETTING_COUNT}个参数限制");
                 return TMP_ParamSlot.Invalid;
             }
 
@@ -140,18 +139,15 @@ namespace TMPro.CombineRender
 
         private void InitializeTexture()
         {
-            _parameterTexture = new Texture2D(INITIAL_TEXTURE_WIDTH, INITIAL_TEXTURE_HEIGHT, TextureFormat.RGBA32, false, true);
-            _parameterTexture.name = "TMP_FontParameterTexture";
-            _parameterTexture.filterMode = FilterMode.Point;
-            _parameterTexture.wrapMode = TextureWrapMode.Clamp;
+            _bufferData = new FontParamData[INITIAL_SETTING_COUNT];
+            _fontParamBuffer = new ComputeBuffer(INITIAL_SETTING_COUNT, 16); // 16 bytes stride
 
-            _textureData = new Color[INITIAL_TEXTURE_WIDTH * INITIAL_TEXTURE_HEIGHT];
-            _allocatedSlots = new List<bool>(INITIAL_TEXTURE_WIDTH);
-            _slot2SettingHash = new List<int>(INITIAL_TEXTURE_WIDTH);
+            _allocatedSlots = new List<bool>(INITIAL_SETTING_COUNT);
+            _slot2SettingHash = new List<int>(INITIAL_SETTING_COUNT);
             _freeSlots = new Queue<int>();
 
             // 初始化分配状态
-            for (int i = 0; i < INITIAL_TEXTURE_WIDTH; i++)
+            for (int i = 0; i < INITIAL_SETTING_COUNT; i++)
             {
                 _allocatedSlots.Add(false);
                 _slot2SettingHash.Add(0);
@@ -170,23 +166,18 @@ namespace TMPro.CombineRender
                 return;
 
             int baseIndex = slot.index;
-            SetTexelColor(baseIndex, new Color(settings.sdfScale / 255f, EncodeFloat(settings.weightNormal), EncodeFloat(settings.weightBold)));
+            if (baseIndex < _bufferData.Length)
+            {
+                _bufferData[baseIndex] = new FontParamData
+                {
+                    gradientScale = settings.sdfScale,
+                    weightNormal = settings.weightNormal,
+                    weightBold = settings.weightBold,
+                    padding = 0,
+                };
+            }
+
             _textureNeedsUpdate = true;
-
-            float EncodeFloat(float value)
-            {
-                // 将[-3, 3]转换到[0, 1]范围内
-                return Mathf.Clamp01((value + 3f) / 6f);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetTexelColor(int index, Color color)
-        {
-            if (index >= 0 && index < _textureData.Length)
-            {
-                _textureData[index] = color;
-            }
         }
     }
 }
