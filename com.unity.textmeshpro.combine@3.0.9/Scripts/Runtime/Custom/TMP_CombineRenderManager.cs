@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -22,6 +23,16 @@ namespace TMPro.CombineRender
         {
             Initialize();
             Canvas.willRenderCanvases += OnPreRender;
+            Application.quitting += OnDispose;
+        }
+
+        private static void OnDispose()
+        {
+            Application.quitting -= OnDispose;
+            Canvas.willRenderCanvases -= OnPreRender;
+
+            _styleSettingAllocator?.Dispose();
+            _fontSettingAllocator?.Dispose();
         }
 
         private static void Initialize()
