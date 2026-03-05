@@ -24,12 +24,18 @@ namespace TMPro.CombineRender
             Initialize();
             Canvas.willRenderCanvases += OnPreRender;
             Application.quitting += OnDispose;
+#if UNITY_EDITOR
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += OnDispose;
+#endif
         }
 
         private static void OnDispose()
         {
             Application.quitting -= OnDispose;
             Canvas.willRenderCanvases -= OnPreRender;
+#if UNITY_EDITOR
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= OnDispose;
+#endif
 
             _styleSettingAllocator?.Dispose();
             _fontSettingAllocator?.Dispose();

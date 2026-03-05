@@ -546,8 +546,8 @@ namespace TMPro
                 StencilMaterial.Remove(m_MaskMaterial);
                 m_MaskMaterial = maskMat;
                 mat = m_MaskMaterial;
-
-                CanvasCombiner?.UpdateStencilMaterial(CombineMaterialIndex, mat);
+				if (UsedCombineMaterial)
+                	CanvasCombiner?.UpdateStencilMaterial(CombineMaterialIndex, mat);
             }
 
             return mat;

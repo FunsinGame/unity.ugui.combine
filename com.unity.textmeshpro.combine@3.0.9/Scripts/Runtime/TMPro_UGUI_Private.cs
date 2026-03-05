@@ -213,7 +213,7 @@ namespace TMPro
             //}
 
             // UnRegister Graphic Component
-            GraphicRegistry.DisableGraphicForCanvas(m_canvas, this);
+            GraphicRegistry.UnregisterGraphicForCanvas(m_canvas, this);
             CanvasUpdateRegistry.UnRegisterCanvasElementForRebuild((ICanvasElement)this);
 
             TMP_UpdateManager.UnRegisterTextObjectForUpdate(this);
