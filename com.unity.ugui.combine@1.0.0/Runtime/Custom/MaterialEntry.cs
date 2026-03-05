@@ -7,6 +7,16 @@ namespace UnityEngine.UI.CombineRender
     internal sealed class MaterialEntry
     {
         public const int MAX_SLOT_COUNT = 8;
+
+        internal static readonly ObjectPool<MaterialEntry> pool = new(
+           () => new MaterialEntry(),
+           null,
+           null,
+           null,
+           true,
+           16
+        );
+
         internal static int[] slotPropertyIds = new int[]
         {
             //Shader.PropertyToID("_MainTex"), // UGUI会修改材质球中的这个属性，使用时需要注意
@@ -21,7 +31,6 @@ namespace UnityEngine.UI.CombineRender
         };
 
         private TextureSlot[] _usedSlots = new TextureSlot[MAX_SLOT_COUNT];
-        private int _usedSlotCount = 0;
         private Material _material;
 
         public GameObject GameObject { get; set; }
@@ -76,7 +85,7 @@ namespace UnityEngine.UI.CombineRender
             }
         }
 
-        internal void ClearSlots()
+        internal void Clear()
         {
             for (int i = 0; i < Slots.Length; i++)
             {
@@ -87,19 +96,15 @@ namespace UnityEngine.UI.CombineRender
                     Slots[i] = null;
                 }
             }
-            _usedSlotCount = 0;
-        }
 
-        internal void UpateUsedSlotCount()
-        {
-            _usedSlotCount = 0;
-            for (int i = 0; i < _usedSlots.Length; i++)
+            if (_material != null)
             {
-                if (_usedSlots[i] != null)
-                {
-                    _usedSlotCount++;
-                }
+                GameObject.Destroy(_material);
+                _material = null;
             }
+
+            Index = 0;
+            GameObject = null;
         }
     }
 }

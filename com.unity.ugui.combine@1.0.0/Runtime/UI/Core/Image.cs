@@ -408,7 +408,7 @@ namespace UnityEngine.UI
             }
         }
 
-        private Sprite activeSprite { get { return m_OverrideSprite != null ? m_OverrideSprite : sprite; } }
+        protected Sprite activeSprite { get { return m_OverrideSprite != null ? m_OverrideSprite : sprite; } }
 
         /// How the Image is drawn.
         [SerializeField] private Type m_Type = Type.Simple;
@@ -778,7 +778,7 @@ namespace UnityEngine.UI
                 if (m_Material != null)
                     return m_Material;
 
-                if (TryCombine(sprite ? sprite.texture : null))
+                if (TryCombine(activeSprite ? activeSprite.texture : null))
                 {
                     UsedCombineMaterial = true;
                     return m_CombineMaterial;
@@ -828,7 +828,7 @@ namespace UnityEngine.UI
             m_FillAmount = Mathf.Clamp(m_FillAmount, 0f, 1f);
         }
 
-        private void PreserveSpriteAspectRatio(ref Rect rect, Vector2 spriteSize)
+        protected void PreserveSpriteAspectRatio(ref Rect rect, Vector2 spriteSize)
         {
             var spriteRatio = spriteSize.x / spriteSize.y;
             var rectRatio = rect.width / rect.height;
@@ -1407,7 +1407,7 @@ namespace UnityEngine.UI
             vertexHelper.AddTriangle(startIndex + 2, startIndex + 3, startIndex);
         }
 
-        private Vector4 GetAdjustedBorders(Vector4 border, Rect adjustedRect)
+        protected virtual Vector4 GetAdjustedBorders(Vector4 border, Rect adjustedRect)
         {
             Rect originalRect = rectTransform.rect;
 

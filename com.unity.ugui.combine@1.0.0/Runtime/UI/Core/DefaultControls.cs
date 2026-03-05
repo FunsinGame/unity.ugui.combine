@@ -206,11 +206,23 @@ namespace UnityEngine.UI
         /// </remarks>
         /// <param name="resources">The resources to use for creation.</param>
         /// <returns>The root GameObject of the created element.</returns>
-        public static GameObject CreateButton(Resources resources)
+        public static GameObject CreateButton(Resources resources, bool hasText = true)
         {
             GameObject buttonRoot = CreateUIElementRoot("Button (Legacy)", s_ThickElementSize, typeof(Image), typeof(Button));
 
-            GameObject childText = CreateUIObject("Text (Legacy)", buttonRoot, typeof(Text));
+            if (hasText)
+            {
+                GameObject childText = CreateUIObject("Text (Legacy)", buttonRoot, typeof(Text));
+                Text text = childText.GetComponent<Text>();
+                text.text = "Button";
+                text.alignment = TextAnchor.MiddleCenter;
+                SetDefaultTextValues(text);
+
+                RectTransform textRectTransform = childText.GetComponent<RectTransform>();
+                textRectTransform.anchorMin = Vector2.zero;
+                textRectTransform.anchorMax = Vector2.one;
+                textRectTransform.sizeDelta = Vector2.zero;
+            }
 
             Image image = buttonRoot.GetComponent<Image>();
             image.sprite = resources.standard;
@@ -219,16 +231,6 @@ namespace UnityEngine.UI
 
             Button bt = buttonRoot.GetComponent<Button>();
             SetDefaultColorTransitionValues(bt);
-
-            Text text = childText.GetComponent<Text>();
-            text.text = "Button";
-            text.alignment = TextAnchor.MiddleCenter;
-            SetDefaultTextValues(text);
-
-            RectTransform textRectTransform = childText.GetComponent<RectTransform>();
-            textRectTransform.anchorMin = Vector2.zero;
-            textRectTransform.anchorMax = Vector2.one;
-            textRectTransform.sizeDelta = Vector2.zero;
 
             return buttonRoot;
         }

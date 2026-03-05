@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Pool;
 
 namespace UnityEngine.UI.CombineRender
 {
@@ -41,7 +42,7 @@ namespace UnityEngine.UI.CombineRender
             }
         }
     }
-    
+
     [RequireComponent(typeof(Canvas))]
     public partial class CanvasCombiner : MonoBehaviour
     {
@@ -50,7 +51,7 @@ namespace UnityEngine.UI.CombineRender
 
         [SerializeField]
         private bool _useCombiner = true;
-        private List<MaterialEntry> _matEntries = new();
+        private List<MaterialEntry> _matEntries;
         private Canvas _canvas;
 
         public bool UseCombiner
@@ -77,7 +78,7 @@ namespace UnityEngine.UI.CombineRender
         private void Awake()
         {
             _canvas = GetComponent<Canvas>();
-
+            _matEntries = ListPool<MaterialEntry>.Get();
 #if UNITY_EDITOR
             CanvasRenderer.onRequestRebuild += OnRequestRebuild;
 #endif
@@ -91,15 +92,12 @@ namespace UnityEngine.UI.CombineRender
 
             for (int matIndex = 0; matIndex < _matEntries.Count; matIndex++)
             {
-                MaterialEntry materialEntry = _matEntries[matIndex];
-                materialEntry.ClearSlots();
-
-                if (materialEntry.Material != null)
-                {
-                    GameObject.Destroy(materialEntry.Material);
-                }
+                var entry = _matEntries[matIndex];
+                entry.Clear();
+                MaterialEntry.pool.Release(entry);
             }
             _matEntries.Clear();
+            ListPool<MaterialEntry>.Release(_matEntries);
         }
 
         /// <summary>
@@ -143,7 +141,8 @@ namespace UnityEngine.UI.CombineRender
                 MaterialEntry materialEntry;
                 if (freeMatIndex < 0)
                 {
-                    materialEntry = new MaterialEntry() { GameObject = this.gameObject };
+                    materialEntry = MaterialEntry.pool.Get();
+                    materialEntry.GameObject = this.gameObject;
                     materialEntry.Index = _matEntries.Count;
 
                     freeMatIndex = materialEntry.Index;
@@ -163,7 +162,6 @@ namespace UnityEngine.UI.CombineRender
                 slot.texture = texture;
                 slot.refCount = 1;
                 materialEntry.Slots[freeSlotIndex] = slot;
-                materialEntry.UpateUsedSlotCount();
                 materialEntry.UpdateMaterialTexture(materialEntry.Material);
             }
 
@@ -194,7 +192,6 @@ namespace UnityEngine.UI.CombineRender
                         {
                             TextureSlot.pool.Release(slot);
                             matEntry.Slots[materialIndex.slotIndex] = null;
-                            matEntry.UpateUsedSlotCount();
                         }
                     }
                 }
@@ -222,23 +219,9 @@ namespace UnityEngine.UI.CombineRender
             }
         }
 
-        internal bool IsBuildinSprite(Sprite sprite)
-        {
-            string spriteName = sprite.texture.name;
-            if (spriteName == "UISprite" || spriteName == "UIMask" || spriteName == "Checkmark")
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         internal void UpdateStencilMaterial(MaterialIndex materialIndex, Material stencilMat)
         {
-            if (materialIndex != InvalidIndex && stencilMat != null
-                && stencilMat.shader == CombineRenderManager.DefaultShader)
+            if (materialIndex != InvalidIndex && stencilMat != null && stencilMat.shader == CombineRenderManager.DefaultShader)
             {
                 if (materialIndex.matIndex >= 0 && materialIndex.matIndex < _matEntries.Count)
                 {
